@@ -1,0 +1,36 @@
+.app {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 40px 20px;
+}
+
+.search-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 24px 0;
+}
+
+.search-form input {
+  min-width: 240px;
+  padding: 10px;
+}
+
+.search-form button {
+  padding: 10px 16px;
+  cursor: pointer;
+}
+
+.movie-list {
+  list-style: none;
+  padding: 0;
+}
+
+.movie-list li {
+  background: white;
+  border: 1px solid #dce2eb;
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 16px;
+}

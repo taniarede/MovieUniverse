@@ -34,6 +34,28 @@ playlistsRouter.get("/examples", async (_req, res) => {
   }
 });
 
+playlistsRouter.get("/memberships", requireAuth, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT
+         p.id::text AS "playlistId",
+         pm.tmdb_id AS "tmdbId"
+       FROM playlists AS p
+       JOIN playlist_movies AS pm ON pm.playlist_id = p.id
+       WHERE p.user_id = $1
+         AND p.is_deleted = FALSE`,
+      [res.locals.userId],
+    );
+
+    res.json({ memberships: result.rows });
+  } catch (error) {
+    console.error("Erro ao consultar filmes das playlists:", error);
+    res.status(500).json({
+      message: "Não foi possível consultar os filmes das playlists",
+    });
+  }
+});
+
 
 playlistsRouter.get("/examples/compare", async (req, res) => {
   const first = req.query.first;
@@ -375,3 +397,4 @@ playlistsRouter.delete("/:playlistId", requireAuth, async (req, res) => {
     res.status(500).json({ message: "Não foi possível apagar a playlist" });
   }
 });
+

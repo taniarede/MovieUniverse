@@ -1,0 +1,117 @@
+.example-playlists {
+  margin-block: 40px;
+}
+
+.example-playlists > p {
+  color: var(--muted);
+}
+
+.example-playlists__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.example-playlists__list > li,
+.example-playlists__detail,
+.example-playlists__comparison {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.example-playlists__list > li:hover {
+  border-color: #64869b;
+}
+
+.example-playlists__list h3 {
+  margin-top: 0;
+}
+
+.example-playlists__list p {
+  color: var(--muted);
+}
+
+.example-playlists__detail,
+.example-playlists__comparison {
+  margin-top: 20px;
+}
+
+.example-playlists__movies {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 16px;
+  padding-left: 24px;
+}
+
+.example-playlists__movies li {
+  min-width: 0;
+  padding-left: 4px;
+}
+
+.example-playlists__movies img,
+.example-playlists__no-poster {
+  display: block;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  border-radius: 8px;
+}
+
+.example-playlists__movies img {
+  object-fit: cover;
+}
+
+.example-playlists__no-poster {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-raised);
+  color: var(--muted);
+  text-align: center;
+}
+
+.example-playlists__movies li > span:last-child {
+  display: block;
+  margin-top: 8px;
+  overflow-wrap: anywhere;
+}
+
+.example-playlists__comparison label,
+.example-playlists__comparison select {
+  display: block;
+}
+
+.example-playlists__comparison label {
+  margin-top: 12px;
+  font-weight: 650;
+}
+
+.example-playlists__comparison select {
+  width: 100%;
+  max-width: 420px;
+  margin: 6px 0 16px;
+}
+
+.example-playlists__comparison h4 {
+  color: var(--cyan);
+}
+
+.example-playlists__comparison [aria-live] {
+  margin-top: 20px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-raised);
+}
+
+@media (max-width: 480px) {
+  .example-playlists__list > li,
+  .example-playlists__detail,
+  .example-playlists__comparison {
+    padding: 14px;
+  }
+}

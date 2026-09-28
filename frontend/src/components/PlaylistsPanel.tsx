@@ -15,12 +15,15 @@ type PlaylistsPanelProps = Readonly<{
   token: string;
   selectedMovie: { tmdbId: number; title: string } | null;
   onPlaylistsChange: (playlists: Playlist[]) => void;
+  onMembershipsChanged: () => void;
 }>;
 
 export function PlaylistsPanel({
   token,
   selectedMovie,
   onPlaylistsChange,
+  onMembershipsChanged,
+
 }: PlaylistsPanelProps) {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +136,7 @@ export function PlaylistsPanel({
       }
 
       setListVersion((current) => current + 1);
+      onMembershipsChanged();
 
       const playlist = playlists.find((item) => item.id === playlistId);
       setMovieMessage(
@@ -165,6 +169,7 @@ export function PlaylistsPanel({
 
       setPlaylists(updated);
       onPlaylistsChange(updated);
+      onMembershipsChanged();
       setOpenPlaylistId((current) =>
         current === playlistId ? null : current,
       );
@@ -268,6 +273,7 @@ export function PlaylistsPanel({
             playlists.find((playlist) => playlist.id === openPlaylistId)
               ?.name ?? "playlist"
           }
+          onMembershipsChanged={onMembershipsChanged}
         />
       )}
 

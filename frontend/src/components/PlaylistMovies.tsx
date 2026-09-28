@@ -22,12 +22,14 @@ type PlaylistMoviesProps = Readonly<{
   token: string;
   playlistId: string;
   playlistName: string;
+  onMembershipsChanged: () => void;
 }>;
 
 export function PlaylistMovies({
   token,
   playlistId,
   playlistName,
+  onMembershipsChanged,
 }: PlaylistMoviesProps) {
   const [movies, setMovies] = useState<DisplayMovie[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,6 +100,7 @@ export function PlaylistMovies({
     setMovies((current) =>
       current.filter((movie) => movie.tmdbId !== tmdbId),
     );
+    onMembershipsChanged();
     setMessage("Filme removido da playlist.");
   } catch {
     setMessage("Não foi possível remover o filme.");

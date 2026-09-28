@@ -1,4 +1,4 @@
-import { useCallback, useState, type SubmitEvent } from "react";
+import { useCallback, useEffect, useState, type SubmitEvent } from "react";
 import "./App.css";
 import { LoginForm, type LoginSession } from "./components/LoginForm";
 import { PlaylistsPanel } from "./components/PlaylistsPanel";
@@ -6,6 +6,8 @@ import { PlaylistStar } from "./components/PlaylistStar";
 import { RatingForm } from "./components/RatingForm";
 import { RegisterForm } from "./components/RegisterForm";
 import { ExamplePlaylists } from "./components/ExamplePlaylists";
+import { TopMovies } from "./components/TopMovies";
+import { RatingStars } from "./components/RatingStars";
 
 type Movie = {
   tmdbId: number;
@@ -37,6 +39,13 @@ type PlaylistOption = {
   name: string;
 };
 
+
+type Membership = {
+  playlistId: string;
+  tmdbId: number;
+};
+
+
 function App() {
   const [query, setQuery] = useState("");
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -57,6 +66,47 @@ function App() {
   },
   [],
 );
+  const [memberships, setMemberships] = useState<Membership[]>([]);
+  const [membershipVersion, setMembershipVersion] = useState(0);
+
+  const refreshMemberships = useCallback(() => {
+  setMembershipVersion((current) => current + 1);
+}, []);
+
+  useEffect(() => {
+    const token = session?.token;
+
+    if (!token) return;
+
+    let active = true;
+
+    async function loadMemberships() {
+      try {
+        const response = await fetch("/api/playlists/memberships", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Falha ao consultar playlists");
+        }
+
+        const data = (await response.json()) as {
+          memberships: Membership[];
+        };
+
+        if (active) setMemberships(data.memberships);
+      } catch {
+        if (active) setMemberships([]);
+      }
+    }
+
+    loadMemberships();
+
+    return () => {
+      active = false;
+    };
+  }, [session?.token, membershipVersion]);
+
 
   async function loadPage(term: string, requestedPage: number) {
     setLoading(true);
@@ -126,12 +176,24 @@ function App() {
   function handleLogout() {
     setSession(null);
     setMyPlaylists([]);
+    setMemberships([]);
   }
 
   return (
     <main className="app">
-      <h1>MovieUniverse</h1>
-      <p>Pesquisa filmes e descobre as suas avaliações.</p>
+      <header className="site-header">
+        <div className="site-brand">
+          <img
+            src="/movieuniverse-logo.png"
+            alt=""
+            className="site-brand__icon"
+          />
+          <div>
+            <h1>MovieUniverse</h1>
+            <p>O teu universo de filmes.</p>
+          </div>
+        </div>
+      </header>
 
       {session ? (
         <div className="session-bar">
@@ -159,6 +221,7 @@ function App() {
               : null
           }
           onPlaylistsChange={handlePlaylistsChange}
+          onMembershipsChanged={refreshMemberships}
         />
       )}
 
@@ -201,6 +264,14 @@ function App() {
           </p>
 
           <p>{selectedMovie.overview || "Sem sinopse disponível."}</p>
+          
+          <RatingStars
+            score={
+              selectedMovie.tmdbVotes > 0
+                ? selectedMovie.tmdbRating
+                : null
+            }
+          />
 
           <p>
             TMDB:{" "}
@@ -208,6 +279,14 @@ function App() {
               ? `${selectedMovie.tmdbRating.toFixed(1)}/10 · ${new Intl.NumberFormat("pt-PT").format(selectedMovie.tmdbVotes)} votos`
               : "sem votos"}
           </p>
+
+          <RatingStars
+            score={
+              selectedMovie.appVotes > 0
+                ? selectedMovie.appAverage
+                : null
+            }
+          />
 
           <p>
             MovieUniverse:{" "}
@@ -241,6 +320,8 @@ function App() {
           )}
         </section>
       )}
+
+      <TopMovies onSelectMovie={handleSelectMovie} />
 
       {totalPages > 1 && (
         <nav className="pagination" aria-label="Páginas dos resultados">
@@ -283,6 +364,9 @@ function App() {
             )}
 
             <h2>{movie.title}</h2>
+            <RatingStars
+              score={movie.tmdbVotes > 0 ? movie.tmdbRating : null}
+            />
 
             <p>
               Lançamento: {movie.releaseDate || "Por anunciar"} ·{" "}
@@ -315,6 +399,10 @@ function App() {
                   title: movie.title,
                 }}
                 playlists={myPlaylists}
+                includedIds={memberships
+                  .filter((item) => item.tmdbId === movie.tmdbId)
+                  .map((item) => item.playlistId)}
+                onChanged={refreshMemberships}
               />
             )}
           </li>

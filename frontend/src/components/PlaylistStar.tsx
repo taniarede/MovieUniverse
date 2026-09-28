@@ -9,60 +9,20 @@ type PlaylistStarProps = Readonly<{
   token: string;
   movie: { tmdbId: number; title: string };
   playlists: Playlist[];
+  includedIds: string[];
+  onChanged: () => void;
 }>;
 
 export function PlaylistStar({
   token,
   movie,
   playlists,
+  includedIds,
+  onChanged,
 }: PlaylistStarProps) {
   const [open, setOpen] = useState(false);
-  const [includedIds, setIncludedIds] = useState<string[]>([]);
-  const [loading, setLoading] = useState(false);
   const [changingId, setChangingId] = useState<string | null>(null);
   const [error, setError] = useState("");
-
-  async function handleOpen() {
-    if (open) {
-      setOpen(false);
-      return;
-    }
-
-    setOpen(true);
-    setLoading(true);
-    setError("");
-
-    try {
-      const ids = await Promise.all(
-        playlists.map(async (playlist) => {
-          const response = await fetch(
-            `/api/playlists/${playlist.id}/movies`,
-            { headers: { Authorization: `Bearer ${token}` } },
-          );
-
-          if (!response.ok) {
-            throw new Error("Não foi possível consultar a playlist");
-          }
-
-          const data = (await response.json()) as {
-            movies: { tmdbId: number }[];
-          };
-
-          return data.movies.some(
-            (item) => item.tmdbId === movie.tmdbId,
-          )
-            ? playlist.id
-            : null;
-        }),
-      );
-
-      setIncludedIds(ids.filter((id): id is string => id !== null));
-    } catch {
-      setError("Não foi possível consultar as playlists.");
-    } finally {
-      setLoading(false);
-    }
-  }
 
   async function handleToggle(playlistId: string) {
     const included = includedIds.includes(playlistId);
@@ -90,11 +50,7 @@ export function PlaylistStar({
         throw new Error("Não foi possível alterar a playlist");
       }
 
-      setIncludedIds((current) =>
-        included
-          ? current.filter((id) => id !== playlistId)
-          : [...current, playlistId],
-      );
+      onChanged();
     } catch {
       setError("Não foi possível alterar esta playlist.");
     } finally {
@@ -106,7 +62,7 @@ export function PlaylistStar({
     <div className="playlist-star">
       <button
         type="button"
-        onClick={handleOpen}
+        onClick={() => setOpen((current) => !current)}
         aria-expanded={open}
         aria-label={`Gerir playlists de ${movie.title}`}
       >
@@ -115,14 +71,13 @@ export function PlaylistStar({
 
       {open && (
         <div className="playlist-star-menu">
-          {loading && <p>A consultar playlists…</p>}
           {error && <p role="alert">{error}</p>}
 
-          {!loading && !error && playlists.length === 0 && (
+          {playlists.length === 0 && (
             <p>Cria primeiro uma playlist.</p>
           )}
 
-          {!loading && !error && playlists.map((playlist) => {
+          {playlists.map((playlist) => {
             const included = includedIds.includes(playlist.id);
 
             return (

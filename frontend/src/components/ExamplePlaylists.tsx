@@ -1,10 +1,36 @@
 import { useEffect, useState } from "react";
+import "./ExamplePlaylists.css";
 
 type ExamplePlaylist = {
   seedId: string;
   name: string;
   owner: string;
   movieCount: number;
+};
+
+type PlaylistEntry = {
+  tmdbId: number;
+  position: number;
+};
+
+type PlaylistDetailResponse = {
+  playlist: {
+    seedId: string;
+    name: string;
+    owner: string;
+  };
+  movies: PlaylistEntry[];
+};
+
+type MovieInfo = {
+  tmdbId: number;
+  title: string;
+  posterPath: string | null;
+};
+
+type DisplayMovie = PlaylistEntry & {
+  title: string;
+  posterPath: string | null;
 };
 
 type ComparisonSide = {
@@ -24,13 +50,41 @@ type Comparison = {
   commonTmdbIds: number[];
 };
 
+type CommonMovie = {
+  tmdbId: number;
+  title: string;
+};
+
+async function getMovieInfo(tmdbId: number): Promise<MovieInfo> {
+  const response = await fetch(`/api/movies/${tmdbId}`);
+
+  if (!response.ok) {
+    throw new Error("Falha ao consultar filme");
+  }
+
+  const movie = (await response.json()) as MovieInfo;
+
+  return {
+    tmdbId,
+    title: movie.title,
+    posterPath: movie.posterPath,
+  };
+}
+
 export function ExamplePlaylists() {
   const [playlists, setPlaylists] = useState<ExamplePlaylist[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  const [selectedId, setSelectedId] = useState("");
+  const [selectedMovies, setSelectedMovies] = useState<DisplayMovie[]>([]);
+  const [moviesLoading, setMoviesLoading] = useState(false);
+  const [moviesError, setMoviesError] = useState("");
+
   const [firstId, setFirstId] = useState("");
   const [secondId, setSecondId] = useState("");
   const [comparison, setComparison] = useState<Comparison | null>(null);
+  const [commonMovies, setCommonMovies] = useState<CommonMovie[]>([]);
   const [comparing, setComparing] = useState(false);
   const [compareError, setCompareError] = useState("");
 
@@ -42,7 +96,7 @@ export function ExamplePlaylists() {
         const response = await fetch("/api/playlists/examples");
 
         if (!response.ok) {
-          throw new Error("Falha ao obter as playlists");
+          throw new Error("Falha ao obter playlists");
         }
 
         const data = (await response.json()) as {
@@ -70,12 +124,72 @@ export function ExamplePlaylists() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!selectedId) return;
+
+    let active = true;
+
+    async function loadSelectedPlaylist() {
+      setMoviesLoading(true);
+      setMoviesError("");
+      setSelectedMovies([]);
+
+      try {
+        const response = await fetch(
+          `/api/playlists/examples/${encodeURIComponent(selectedId)}`,
+        );
+
+        if (!response.ok) {
+          throw new Error("Falha ao consultar playlist");
+        }
+
+        const data =
+          (await response.json()) as PlaylistDetailResponse;
+
+        const results = await Promise.allSettled(
+          data.movies.map((entry) => getMovieInfo(entry.tmdbId)),
+        );
+
+        const movies = data.movies.map((entry, index) => {
+          const result = results[index];
+
+          return {
+            ...entry,
+            title:
+              result.status === "fulfilled"
+                ? result.value.title
+                : `Filme ${entry.tmdbId}`,
+            posterPath:
+              result.status === "fulfilled"
+                ? result.value.posterPath
+                : null,
+          };
+        });
+
+        if (active) setSelectedMovies(movies);
+      } catch {
+        if (active) {
+          setMoviesError("Não foi possível carregar esta playlist.");
+        }
+      } finally {
+        if (active) setMoviesLoading(false);
+      }
+    }
+
+    loadSelectedPlaylist();
+
+    return () => {
+      active = false;
+    };
+  }, [selectedId]);
+
   async function handleCompare() {
     if (!firstId || !secondId || firstId === secondId) return;
 
     setComparing(true);
     setCompareError("");
     setComparison(null);
+    setCommonMovies([]);
 
     try {
       const params = new URLSearchParams({
@@ -88,15 +202,39 @@ export function ExamplePlaylists() {
       );
 
       if (!response.ok) {
-        throw new Error("Falha ao comparar as playlists");
+        throw new Error("Falha ao comparar playlists");
       }
 
-      setComparison((await response.json()) as Comparison);
+      const result = (await response.json()) as Comparison;
+
+      const movieResults = await Promise.allSettled(
+        result.commonTmdbIds.map(getMovieInfo),
+      );
+
+      const names = result.commonTmdbIds.map((tmdbId, index) => {
+        const movieResult = movieResults[index];
+
+        return {
+          tmdbId,
+          title:
+            movieResult.status === "fulfilled"
+              ? movieResult.value.title
+              : `Filme ${tmdbId}`,
+        };
+      });
+
+      setComparison(result);
+      setCommonMovies(names);
     } catch {
       setCompareError("Não foi possível comparar as playlists.");
     } finally {
       setComparing(false);
     }
+  }
+
+  function clearComparison() {
+    setComparison(null);
+    setCommonMovies([]);
   }
 
   let resultMessage = "";
@@ -119,6 +257,10 @@ export function ExamplePlaylists() {
     }
   }
 
+  const selectedPlaylist = playlists.find(
+    (playlist) => playlist.seedId === selectedId,
+  );
+
   return (
     <section className="example-playlists">
       <h2>Playlists de exemplo</h2>
@@ -129,29 +271,74 @@ export function ExamplePlaylists() {
 
       {!loading && !error && (
         <>
-          <ul>
+          <ul className="example-playlists__list">
             {playlists.map((playlist) => (
               <li key={playlist.seedId}>
-                <strong>{playlist.name}</strong>
-                {" · "}
-                {playlist.owner}
-                {" · "}
-                {playlist.movieCount} filmes
+                <h3>{playlist.name}</h3>
+                <p>
+                  Por {playlist.owner} · {playlist.movieCount} filmes
+                </p>
+                <button
+                  type="button"
+                  aria-expanded={selectedId === playlist.seedId}
+                  onClick={() =>
+                    setSelectedId((current) =>
+                      current === playlist.seedId
+                        ? ""
+                        : playlist.seedId,
+                    )
+                  }
+                >
+                  {selectedId === playlist.seedId
+                    ? "Ocultar filmes"
+                    : "Ver filmes"}
+                </button>
               </li>
             ))}
           </ul>
 
+          {selectedId && (
+            <section className="example-playlists__detail">
+              <h3>Filmes em {selectedPlaylist?.name ?? "playlist"}</h3>
+
+              {moviesLoading && <p>A carregar filmes…</p>}
+              {moviesError && <p role="alert">{moviesError}</p>}
+
+              {!moviesLoading && !moviesError && (
+                <ol className="example-playlists__movies">
+                  {selectedMovies.map((movie) => (
+                    <li key={movie.tmdbId}>
+                      {movie.posterPath ? (
+                        <img
+                          src={`https://image.tmdb.org/t/p/w185${movie.posterPath}`}
+                          alt={`Cartaz de ${movie.title}`}
+                          loading="lazy"
+                        />
+                      ) : (
+                        <span className="example-playlists__no-poster">
+                          Sem cartaz
+                        </span>
+                      )}
+                      <span>{movie.title}</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+          )}
+
           {playlists.length >= 2 && (
-            <div className="playlist-comparison">
+            <div className="example-playlists__comparison">
               <h3>Comparar duas playlists</h3>
 
               <label htmlFor="first-example">Primeira playlist</label>
               <select
                 id="first-example"
                 value={firstId}
+                disabled={comparing}
                 onChange={(event) => {
                   setFirstId(event.target.value);
-                  setComparison(null);
+                  clearComparison();
                 }}
               >
                 {playlists.map((playlist) => (
@@ -165,9 +352,10 @@ export function ExamplePlaylists() {
               <select
                 id="second-example"
                 value={secondId}
+                disabled={comparing}
                 onChange={(event) => {
                   setSecondId(event.target.value);
-                  setComparison(null);
+                  clearComparison();
                 }}
               >
                 {playlists.map((playlist) => (
@@ -219,11 +407,15 @@ export function ExamplePlaylists() {
                     {comparison.second.totalMovies} filmes com nota
                   </p>
 
-                  <p>
-                    Filmes em comum: {comparison.commonTmdbIds.length}
-                    {comparison.commonTmdbIds.length > 0 &&
-                      ` (IDs TMDB: ${comparison.commonTmdbIds.join(", ")})`}
-                  </p>
+                  <p>Filmes em comum: {commonMovies.length}</p>
+
+                  {commonMovies.length > 0 && (
+                    <ul>
+                      {commonMovies.map((movie) => (
+                        <li key={movie.tmdbId}>{movie.title}</li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
               )}
             </div>

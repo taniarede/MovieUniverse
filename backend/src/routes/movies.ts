@@ -78,7 +78,55 @@ res.json({
   }
 });
 
+moviesRouter.get("/top", async (_req, res) => {
+  const token = process.env.TMDB_READ_TOKEN;
 
+  if (!token) {
+    res.status(500).json({ message: "Token do TMDB não configurado" });
+    return;
+  }
+
+  const url = new URL("https://api.themoviedb.org/3/movie/top_rated");
+  url.searchParams.set("language", "pt-PT");
+  url.searchParams.set("page", "1");
+
+  try {
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!response.ok) {
+      res.status(502).json({ message: "O TMDB não respondeu com sucesso" });
+      return;
+    }
+
+    const data = (await response.json()) as {
+      results: Array<{
+        id: number;
+        title: string;
+        poster_path: string | null;
+        vote_average: number;
+        vote_count: number;
+      }>;
+    };
+
+    res.json({
+      source: "TMDB",
+      movies: data.results.slice(0, 10).map((movie) => ({
+        tmdbId: movie.id,
+        title: movie.title,
+        posterPath: movie.poster_path,
+        tmdbRating: movie.vote_average,
+        tmdbVotes: movie.vote_count,
+      })),
+    });
+  } catch (error) {
+    console.error("Erro ao consultar o Top TMDB:", error);
+    res.status(502).json({
+      message: "Não foi possível consultar o Top TMDB",
+    });
+  }
+});
 
 moviesRouter.get("/:tmdbId", async (req, res) => {
   const tmdbId = Number(req.params.tmdbId);

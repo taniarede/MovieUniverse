@@ -77,7 +77,7 @@ export function TopMovies({ onSelectMovie }: TopMoviesProps) {
 
               <RatingStars
                 score={movie.tmdbVotes > 0 ? movie.tmdbRating : null}
-                />
+              />
 
               <p>
                 {movie.tmdbVotes > 0

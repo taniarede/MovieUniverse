@@ -1,6 +1,6 @@
 import { useState, type SubmitEvent } from "react";
 
-export function RegisterForm() {
+export function RegisterForm({ onRegistered }: Readonly<{ onRegistered?: () => void }>) {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -32,6 +32,7 @@ export function RegisterForm() {
       setUsername("");
       setEmail("");
       setPassword("");
+      onRegistered?.();
     } catch {
       setMessage("Não foi possível criar a conta. Confirma os dados e tenta novamente.");
     } finally {

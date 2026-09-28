@@ -182,7 +182,7 @@ export function PlaylistsPanel({
   }
 
   return (
-    <section className="playlists-panel">
+    <section id="my-playlists" className="playlists-panel">
       <h2>As minhas playlists</h2>
 
       <form onSubmit={handleCreate} className="playlist-form">

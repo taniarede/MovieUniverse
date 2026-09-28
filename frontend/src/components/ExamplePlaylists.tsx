@@ -262,7 +262,7 @@ export function ExamplePlaylists() {
   );
 
   return (
-    <section className="example-playlists">
+    <section id="examples" className="example-playlists">
       <h2>Playlists de exemplo</h2>
       <p>Listas importadas para explorar e comparar.</p>
 

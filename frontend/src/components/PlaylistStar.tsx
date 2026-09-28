@@ -66,7 +66,8 @@ export function PlaylistStar({
         aria-expanded={open}
         aria-label={`Gerir playlists de ${movie.title}`}
       >
-        {includedIds.length > 0 ? "★" : "☆"} Playlists
+        <span aria-hidden="true">{includedIds.length > 0 ? "★" : "☆"}</span>
+        <span className="visually-hidden"> Playlists</span>
       </button>
 
       {open && (

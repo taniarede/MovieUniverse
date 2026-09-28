@@ -6,7 +6,6 @@ type Playlist = {
 };
 
 type PlaylistStarProps = Readonly<{
-  token: string;
   movie: { tmdbId: number; title: string };
   playlists: Playlist[];
   includedIds: string[];
@@ -14,7 +13,6 @@ type PlaylistStarProps = Readonly<{
 }>;
 
 export function PlaylistStar({
-  token,
   movie,
   playlists,
   includedIds,
@@ -37,8 +35,7 @@ export function PlaylistStar({
         {
           method: included ? "DELETE" : "POST",
           headers: {
-            Authorization: `Bearer ${token}`,
-            ...(!included && { "Content-Type": "application/json" }),
+              ...(!included && { "Content-Type": "application/json" }),
           },
           ...(!included && {
             body: JSON.stringify({ tmdbId: movie.tmdbId }),

@@ -89,10 +89,11 @@ usersRouter.post("/login", async (req, res) => {
       { algorithm: "HS256", expiresIn: "1h" },
     );
 
-    res.json({
-      token,
-      user: { id: user.id, username: user.username },
+    res.cookie("mu_session", token, {
+      httpOnly: true, sameSite: "lax", secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60 * 1000, path: "/",
     });
+    res.json({ user: { id: user.id, username: user.username } });
   } catch (error) {
     console.error("Erro no login:", error);
     res.status(500).json({ message: "Não foi possível iniciar sessão" });
@@ -100,6 +101,20 @@ usersRouter.post("/login", async (req, res) => {
 });
 
 
-usersRouter.get("/me", requireAuth, (_req, res) => {
-  res.json({ userId: res.locals.userId });
+usersRouter.get("/me", requireAuth, async (_req, res) => {
+  try {
+    const result = await pool.query(
+      "SELECT id::text AS id, username FROM users WHERE id = $1 AND seed_name IS NULL",
+      [res.locals.userId],
+    );
+    if (!result.rows[0]) { res.status(401).json({ message: "Sessão inválida" }); return; }
+    res.json({ user: result.rows[0] });
+  } catch {
+    res.status(500).json({ message: "Não foi possível recuperar a sessão" });
+  }
+});
+
+usersRouter.post("/logout", (_req, res) => {
+  res.clearCookie("mu_session", { httpOnly: true, sameSite: "lax", path: "/", secure: process.env.NODE_ENV === "production" });
+  res.status(204).send();
 });

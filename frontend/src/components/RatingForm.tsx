@@ -10,12 +10,11 @@ type RatingResponse = {
 };
 
 type RatingFormProps = Readonly<{
-  token: string;
   tmdbId: number;
   onSaved: () => void;
 }>;
 
-export function RatingForm({ token, tmdbId, onSaved }: RatingFormProps) {
+export function RatingForm({ tmdbId, onSaved }: RatingFormProps) {
   const [score, setScore] = useState("");
   const [review, setReview] = useState("");
   const [loading, setLoading] = useState(true);
@@ -28,7 +27,7 @@ export function RatingForm({ token, tmdbId, onSaved }: RatingFormProps) {
     async function loadRating() {
       try {
         const response = await fetch(`/api/ratings/${tmdbId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          
         });
 
         if (!response.ok) {
@@ -52,7 +51,7 @@ export function RatingForm({ token, tmdbId, onSaved }: RatingFormProps) {
     return () => {
       active = false;
     };
-  }, [tmdbId, token]);
+  }, [tmdbId]);
 
   async function handleSave(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -64,7 +63,6 @@ export function RatingForm({ token, tmdbId, onSaved }: RatingFormProps) {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ score: Number(score), review }),
       });

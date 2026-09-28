@@ -6,7 +6,6 @@ export type LoggedInUser = {
 };
 
 export type LoginSession = {
-  token: string;
   user: LoggedInUser;
 };
 

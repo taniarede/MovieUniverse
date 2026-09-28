@@ -3,7 +3,7 @@ import { calculateCombinedRating } from "./combinedRating";
 
 type PlaylistRow = {
   id: string;
-  seedId: string;
+  ref: string;
   name: string;
   owner: string;
 };
@@ -21,30 +21,31 @@ type RatingRow = {
 
 export class TmdbComparisonError extends Error {}
 
-export async function compareSeedPlaylists(
-  firstSeedId: string,
-  secondSeedId: string,
+export async function comparePlaylists(
+  firstRef: string,
+  secondRef: string,
   token: string,
+  userId: string | null = null,
 ) {
   const playlistsResult = await pool.query<PlaylistRow>(
     `SELECT
        p.id::text AS id,
-       p.seed_id AS "seedId",
+       CASE WHEN p.seed_id IS NOT NULL THEN p.seed_id ELSE 'mine:' || p.id::text END AS ref,
        p.name,
-       u.seed_name AS "owner"
+       COALESCE(u.seed_name, u.username) AS "owner"
      FROM playlists AS p
      JOIN users AS u ON u.id = p.user_id
-     WHERE p.seed_id = ANY($1::text[])
-       AND p.is_deleted = FALSE`,
-    [[firstSeedId, secondSeedId]],
+     WHERE p.is_deleted = FALSE
+       AND ((p.seed_id = ANY($1::text[])) OR (p.user_id = $2 AND ('mine:' || p.id::text) = ANY($1::text[])))`,
+    [[firstRef, secondRef], userId],
   );
 
-  const bySeedId = new Map(
-    playlistsResult.rows.map((playlist) => [playlist.seedId, playlist]),
+  const byRef = new Map(
+    playlistsResult.rows.map((playlist) => [playlist.ref, playlist]),
   );
 
-  const first = bySeedId.get(firstSeedId);
-  const second = bySeedId.get(secondSeedId);
+  const first = byRef.get(firstRef);
+  const second = byRef.get(secondRef);
 
   if (!first || !second) {
     return null;
@@ -143,7 +144,7 @@ export async function compareSeedPlaylists(
           ) / 100;
 
     return {
-      seedId: playlist.seedId,
+      ref: playlist.ref,
       name: playlist.name,
       owner: playlist.owner,
       totalMovies: movieIds.length,
@@ -156,16 +157,16 @@ export async function compareSeedPlaylists(
   const firstSummary = summarize(first, firstMovieIds);
   const secondSummary = summarize(second, secondMovieIds);
 
-  let winnerSeedId: string | null = null;
+  let winnerRef: string | null = null;
 
   if (
     firstSummary.averageRating !== null &&
     secondSummary.averageRating !== null
   ) {
     if (firstSummary.averageRating > secondSummary.averageRating) {
-      winnerSeedId = first.seedId;
+      winnerRef = first.ref;
     } else if (secondSummary.averageRating > firstSummary.averageRating) {
-      winnerSeedId = second.seedId;
+      winnerRef = second.ref;
     }
   }
 
@@ -177,7 +178,7 @@ export async function compareSeedPlaylists(
   return {
     first: firstSummary,
     second: secondSummary,
-    winnerSeedId,
+    winnerRef,
     commonTmdbIds,
   };
 }

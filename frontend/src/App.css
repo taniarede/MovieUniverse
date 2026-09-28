@@ -95,3 +95,48 @@
 .playlist-star > button::first-letter { font-size:inherit; }
 .site-nav button { padding:10px 0; border:0; border-bottom:2px solid transparent; border-radius:0; background:none; color:#d4d9f5; font-size:.86rem; white-space:nowrap; }
 .site-nav button:hover:not(:disabled) { border-color:var(--cyan); background:none; color:var(--cyan); }
+/* Navegação e vistas aprovadas */
+html { scroll-behavior:smooth; }
+.app { overflow:clip; }
+.site-header { position:sticky; top:0; z-index:30; min-height:64px; background:#0e1131f2; backdrop-filter:blur(14px); }
+.site-nav { flex:1; }
+.header-search { display:flex; align-items:center; flex:1 1 220px; max-width:270px; min-width:120px; border:1px solid var(--border); border-radius:999px; background:var(--surface); padding:4px; }
+.header-search input { flex:1; width:0; min-width:0; padding:6px 10px; border:0; background:transparent; color:inherit; }
+.header-search button { flex:none; width:34px; height:34px; padding:0; border:0; border-radius:50%; background:var(--cyan); color:#0c1433; font-size:1.3rem; }
+.site-nav button,.site-nav a { background:none; border:0; border-bottom:2px solid transparent; border-radius:0; padding:10px 0; color:#d4d9f5; font-size:.86rem; white-space:nowrap; text-decoration:none; }
+.site-nav button:hover,.site-nav a:hover { color:var(--cyan); border-color:var(--cyan); background:none; }
+.account-avatar { border:0; padding:0; }
+.hero-cta { display:inline-block; margin-top:20px; padding:11px 18px; border-radius:999px; background:var(--cyan); color:#08122b; text-decoration:none; font-weight:800; }
+.discover-search { padding:clamp(28px,5vw,64px) clamp(18px,6vw,78px); border-top:1px solid var(--border); }
+.discover-search h2 { font-size:clamp(1.8rem,3vw,2.5rem); }
+.discover-search h2 em { font-family:Georgia,serif; font-weight:400; }
+.discover-search .search-form { display:block; width:min(100%,540px); border:0; border-radius:0; background:none; padding:0; }
+.discover-search .search-form::before { content:none; }
+.discover-search .search-form label { display:block; margin-bottom:9px; }
+.discover-search .search-form > div { display:flex; gap:8px; padding:5px; border:1px solid var(--border); border-radius:999px; background:var(--surface); }
+.discover-search .search-form input { width:100%; padding:9px; }
+.discover-search .search-form button { white-space:nowrap; }
+.page-error { margin:22px clamp(18px,6vw,78px); }
+.results { min-height:55vh; }
+.movie-detail { scroll-margin-top:130px; }
+.credits { justify-content:flex-start; gap:24px; }
+.credits img { display:block; width:min(170px,100%); height:auto; }
+.credits p { max-width:620px; }
+.auth-scrim,.drawer-scrim { position:fixed; inset:0; z-index:35; background:#050923bf; }
+.auth-panel { position:fixed; z-index:36; top:50%; left:50%; transform:translate(-50%,-50%); width:min(480px,calc(100vw - 30px)); max-height:calc(100vh - 30px); overflow:auto; margin:0; }
+.drawer-scrim[hidden],.playlist-drawer[hidden] { display:none; }
+.playlist-drawer { position:fixed; z-index:36; top:64px; bottom:0; right:0; width:min(410px,100vw); overflow:auto; border-left:1px solid var(--border); background:#171c43; box-shadow:-12px 0 35px #0008; }
+.drawer-heading { position:sticky; top:0; display:flex; justify-content:space-between; align-items:center; padding:18px 20px; background:#171c43; border-bottom:1px solid var(--border); }
+.drawer-heading h2 { margin:0; font-size:1.4rem; }
+.drawer-heading button { border:0; background:none; font-size:1.6rem; }
+.playlist-drawer .playlists-panel { padding:14px 20px; border:0; }
+.playlist-drawer .playlists-panel > h2 { display:none; }
+.playlist-drawer .playlists-panel > ul { grid-template-columns:1fr; }
+.drawer-logout { margin:20px; }
+.playlist-movies ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; list-style:none; padding:0; }
+.playlist-movies li { display:flex; flex-direction:column; gap:6px; min-width:0; }
+.playlist-movies img,.playlist-movies__empty { display:grid; place-items:center; width:100%; aspect-ratio:2/3; object-fit:cover; border-radius:8px; background:var(--surface-raised); }
+.playlist-movies small { color:var(--muted); }
+.playlist-movies li button { margin-top:auto; }
+@media(max-width:800px){.site-header { display:grid; grid-template-columns:1fr auto; gap:8px; }.header-search { grid-column:1/-1; grid-row:2; max-width:none; width:100%; }.site-nav { grid-column:1/-1; grid-row:3; width:100%; justify-content:flex-start; overflow-x:auto; }.header-account { grid-column:2; grid-row:1; }.playlist-drawer { top:135px; }}
+@media(max-width:420px){.site-brand { font-size:.78rem; }.header-account button { font-size:.72rem; padding:6px; }.site-nav { gap:16px; }.playlist-drawer { top:136px; }.movie-list { grid-template-columns:repeat(2,minmax(0,1fr)); }.credits { align-items:flex-start; flex-direction:column; }}

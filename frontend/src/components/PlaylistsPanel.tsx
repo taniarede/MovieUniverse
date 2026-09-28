@@ -12,14 +12,12 @@ type PlaylistsResponse = {
 };
 
 type PlaylistsPanelProps = Readonly<{
-  token: string;
   selectedMovie: { tmdbId: number; title: string } | null;
   onPlaylistsChange: (playlists: Playlist[]) => void;
   onMembershipsChanged: () => void;
 }>;
 
 export function PlaylistsPanel({
-  token,
   selectedMovie,
   onPlaylistsChange,
   onMembershipsChanged,
@@ -45,7 +43,7 @@ export function PlaylistsPanel({
     async function loadPlaylists() {
       try {
         const response = await fetch("/api/playlists", {
-          headers: { Authorization: `Bearer ${token}` },
+          
         });
 
         if (!response.ok) {
@@ -70,7 +68,7 @@ export function PlaylistsPanel({
     return () => {
       active = false;
     };
-  }, [token, onPlaylistsChange]);
+  }, [onPlaylistsChange]);
 
   async function handleCreate(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -84,7 +82,6 @@ export function PlaylistsPanel({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           name: name.trim(),
@@ -121,7 +118,6 @@ export function PlaylistsPanel({
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ tmdbId: selectedMovie.tmdbId }),
       });
@@ -156,7 +152,7 @@ export function PlaylistsPanel({
     try {
       const response = await fetch(`/api/playlists/${playlistId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
+        
       });
 
       if (!response.ok) {
@@ -267,7 +263,6 @@ export function PlaylistsPanel({
       {openPlaylistId && (
         <PlaylistMovies
           key={`${openPlaylistId}-${listVersion}`}
-          token={token}
           playlistId={openPlaylistId}
           playlistName={
             playlists.find((playlist) => playlist.id === openPlaylistId)

@@ -1,8 +1,8 @@
 import { Router } from "express";
 import { pool } from "../db";
-import { requireAuth } from "../middleware/auth";
+import { optionalAuth, requireAuth } from "../middleware/auth";
 import {
-  compareSeedPlaylists,
+  comparePlaylists,
   TmdbComparisonError,
 } from "../services/compareSeedPlaylists";
 
@@ -57,6 +57,28 @@ playlistsRouter.get("/memberships", requireAuth, async (_req, res) => {
 });
 
 
+playlistsRouter.get("/compare", optionalAuth, async (req, res) => {
+  const { first, second } = req.query;
+  const valid = (value: unknown) => typeof value === "string" &&
+    (/^pl-\d{2}$/.test(value) || /^mine:[1-9]\d*$/.test(value));
+  if (!valid(first) || !valid(second) || first === second) {
+    res.status(400).json({ message: "Escolhe duas playlists diferentes" }); return;
+  }
+  if ((String(first).startsWith("mine:") || String(second).startsWith("mine:")) && !res.locals.userId) {
+    res.status(401).json({ message: "Inicia sessão para comparar as tuas playlists" }); return;
+  }
+  const token = process.env.TMDB_READ_TOKEN;
+  if (!token) { res.status(500).json({ message: "Token do TMDB não configurado" }); return; }
+  try {
+    const result = await comparePlaylists(String(first), String(second), token, res.locals.userId ?? null);
+    if (!result) { res.status(404).json({ message: "Playlist não encontrada" }); return; }
+    res.json(result);
+  } catch (error) {
+    console.error("Erro ao comparar playlists:", error);
+    res.status(error instanceof TmdbComparisonError ? 502 : 500).json({ message: "Não foi possível comparar as playlists" });
+  }
+});
+
 playlistsRouter.get("/examples/compare", async (req, res) => {
   const first = req.query.first;
   const second = req.query.second;
@@ -82,14 +104,19 @@ playlistsRouter.get("/examples/compare", async (req, res) => {
   }
 
   try {
-    const comparison = await compareSeedPlaylists(first, second, token);
+    const comparison = await comparePlaylists(first, second, token);
 
     if (!comparison) {
       res.status(404).json({ message: "Playlist não encontrada" });
       return;
     }
 
-    res.json(comparison);
+    res.json({
+      ...comparison,
+      first: { ...comparison.first, seedId: comparison.first.ref },
+      second: { ...comparison.second, seedId: comparison.second.ref },
+      winnerSeedId: comparison.winnerRef,
+    });
   } catch (error) {
     console.error("Erro ao comparar playlists:", error);
 
@@ -397,4 +424,3 @@ playlistsRouter.delete("/:playlistId", requireAuth, async (req, res) => {
     res.status(500).json({ message: "Não foi possível apagar a playlist" });
   }
 });
-

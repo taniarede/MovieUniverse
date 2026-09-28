@@ -1,0 +1,8 @@
+BEGIN;
+
+ALTER TABLE ratings
+  DROP CONSTRAINT ratings_score_check,
+  ADD CONSTRAINT ratings_score_check
+    CHECK (score >= 1 AND score <= 10);
+
+COMMIT;

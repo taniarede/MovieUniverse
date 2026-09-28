@@ -12,7 +12,8 @@ ratingsRouter.put("/:tmdbId", requireAuth, async (req, res) => {
     !Number.isSafeInteger(tmdbId) ||
     tmdbId <= 0 ||
     typeof score !== "number" ||
-    score < 0 ||
+    !Number.isFinite(score) ||
+    score < 1 ||
     score > 10 ||
     !Number.isInteger(score * 10) ||
     (review !== undefined &&
@@ -20,7 +21,7 @@ ratingsRouter.put("/:tmdbId", requireAuth, async (req, res) => {
       (typeof review !== "string" || review.length > 2000))
   ) {
     res.status(400).json({
-      message: "Indica um ID válido, uma nota de 0 a 10 com uma casa decimal e um comentário até 2000 caracteres",
+      message: "Indica um ID válido, uma nota de 1 a 10 com uma casa decimal e um comentário até 2000 caracteres",
     });
     return;
   }

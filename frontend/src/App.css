@@ -4,6 +4,45 @@
   padding: 40px 20px;
 }
 
+
+.login-form {
+  display: grid;
+  gap: 10px;
+  max-width: 360px;
+  margin: 24px 0;
+}
+
+.login-form input,
+.login-form button {
+  padding: 10px;
+}
+
+
+
+.register-form {
+  display: grid;
+  gap: 10px;
+  max-width: 360px;
+  margin: 24px 0;
+}
+
+.register-form input,
+.register-form button {
+  padding: 10px;
+}
+
+
+
+
+.session-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin: 24px 0;
+}
+
+
+
 .search-form {
   display: flex;
   flex-wrap: wrap;
@@ -33,4 +72,107 @@
   border-radius: 8px;
   margin: 12px 0;
   padding: 16px;
+}
+
+
+.playlists-panel output {
+  display: block;
+  margin: 12px 0;
+}
+
+
+.playlist-form {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin: 20px 0;
+}
+
+.playlist-form input,
+.playlist-form button {
+  padding: 10px;
+}
+
+
+
+
+.rating-form {
+  display: grid;
+  gap: 10px;
+  max-width: 420px;
+  margin-top: 24px;
+}
+
+.rating-form input,
+.rating-form textarea,
+.rating-form button {
+  padding: 10px;
+}
+
+.rating-form textarea {
+  min-height: 90px;
+}
+
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0 24px;
+}
+
+.pagination button {
+  padding: 8px 12px;
+}
+
+.pagination button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+
+.credits {
+  border-top: 1px solid #dce2eb;
+  margin-top: 48px;
+  padding-top: 20px;
+  font-size: 0.9rem;
+}
+
+.tmdb-logo {
+  display: block;
+  width: 160px;
+  max-width: 100%;
+  height: auto;
+  margin: 12px 0;
+}
+
+
+
+.movie-poster {
+  display: block;
+  width: 140px;
+  max-width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.movie-detail-poster {
+  display: block;
+  width: 200px;
+  max-width: 100%;
+  aspect-ratio: 2 / 3;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.movie-poster-placeholder {
+  display: grid;
+  place-items: center;
+  width: 140px;
+  max-width: 100%;
+  aspect-ratio: 2 / 3;
+  border: 1px solid #aaa;
+  border-radius: 8px;
+  text-align: center;
 }

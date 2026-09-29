@@ -67,6 +67,6 @@ A lista Top TMDB e os cartazes dependem da disponibilidade da TMDB. O token fica
 - `backend/sql`: criação e migrações por ordem numérica.
 - `frontend/src/components`: interface por funcionalidade.
 - `DECISIONS.md`: fórmulas, limites e escolhas técnicas.
-- `AI_LOG.md`: propostas de IA revistas e corrigidas.
+
 
 A especificação OpenAPI e o jogo são extensões opcionais que não foram implementadas. Não há cache; as consultas TMDB são feitas em tempo real.
